@@ -1,0 +1,45 @@
+{
+  "name": "africa-ai-trials-network",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "ESLINT_NO_DEV_ERRORS=true next build --turbopack",
+    "start": "next start",
+    "lint": "eslint",
+    "monitor": "node scripts/monitor-database.js",
+    "monitor:check": "node scripts/monitor-database.js --check-once",
+    "registry:check": "node scripts/registry-monitor-n11.js",
+    "registry:check:old": "node scripts/registry-monitor.js",
+    "automation:run": "node scripts/master-automation-n11.js",
+    "automation:run:old": "node scripts/master-automation.js",
+    "verify:trials": "node scripts/verify-trials.js",
+    "test:add-missing": "node scripts/add-missing-trial.js",
+    "data:update": "node scripts/process-sqlite-data-n11.js",
+    "data:rebuild": "python scripts/create-database-n11.py && node scripts/process-sqlite-data-n11.js",
+    "data:rebuild:old": "python scripts/create-database.py && node scripts/process-sqlite-data.js",
+    "metrics:calculate": "node scripts/calculate-network-metrics.js"
+  },
+  "dependencies": {
+    "@types/d3": "^7.4.3",
+    "axios": "^1.7.9",
+    "better-sqlite3": "^12.2.0",
+    "csv-parser": "^3.2.0",
+    "d3": "^7.9.0",
+    "next": "^15.5.9",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5"
+  }
+}

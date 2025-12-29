@@ -1,0 +1,19 @@
+{
+  "checkIntervalHours": 24,
+  "registries": {
+    "clinicalTrials": {
+      "enabled": true,
+      "baseUrl": "https://clinicaltrials.gov/api/v2/studies",
+      "rateLimit": 100,
+      "filters": {
+        "african_countries": true,
+        "ai_keywords": true,
+        "min_start_date": "2020-01-01"
+      }
+    },
+    "pactr": {
+      "enabled": false,
+      "baseUrl": "https://pactr.samrc.ac.za"
+    }
+  }
+}

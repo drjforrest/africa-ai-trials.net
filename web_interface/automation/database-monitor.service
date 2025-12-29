@@ -1,0 +1,17 @@
+[Unit]
+Description=Africa AI Trials Network Database Monitor
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/path/to/africa-ai-trials-network
+ExecStart=/usr/bin/node scripts/monitor-database.js
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=satn-monitor
+
+[Install]
+WantedBy=multi-user.target

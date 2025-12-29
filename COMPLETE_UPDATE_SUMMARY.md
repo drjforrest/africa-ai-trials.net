@@ -51,7 +51,7 @@
 
 ### Database Scripts
 
-- `Archive/web_interface/scripts/create-database-n11.py`
+- `web_interface/scripts/create-database-n11.py`
   - Added funding_sources table
   - Added funding_relationships table
   - Fixed foreign key constraint
@@ -59,14 +59,14 @@
 
 ### Data Processing
 
-- `Archive/web_interface/scripts/process-sqlite-data-n11.js`
+- `web_interface/scripts/process-sqlite-data-n11.js`
   - Processes funding sources as nodes
   - Processes funding relationships as links
   - Fixed SQL query syntax
 
 ### API Routes
 
-- `Archive/web_interface/src/app/api/network/route.ts`
+- `web_interface/src/app/api/network/route.ts`
   - Includes funders in network data
   - Includes funding relationships as links
 
@@ -79,14 +79,14 @@
 
 - `data/README.md` - Documents funding files
 - `analysis/README.md` - Documents new scripts
-- `Archive/web_interface/UPDATE_SUMMARY.md` - Updated status
+- `web_interface/UPDATE_SUMMARY.md` - Updated status
 
 ## Verification
 
 ### Database
 
 ```bash
-cd Archive/web_interface
+cd web_interface
 npm run data:rebuild
 ```
 
@@ -103,7 +103,7 @@ python analysis/run_all_analysis.py
 ### Web Interface
 
 ```bash
-cd Archive/web_interface
+cd web_interface
 npm run dev
 ```
 
@@ -148,7 +148,7 @@ npm run dev
 1. **Test the web interface:**
 
    ```bash
-   cd Archive/web_interface
+   cd web_interface
    npm run dev
    ```
 

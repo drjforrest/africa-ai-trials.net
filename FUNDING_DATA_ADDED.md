@@ -49,9 +49,9 @@ Funding data has been extracted and added to the N=11 dataset structure.
 
 ### Updated Files
 
-- `Archive/web_interface/scripts/create-database-n11.py` - Added funding tables
-- `Archive/web_interface/scripts/process-sqlite-data-n11.js` - Processes funding data
-- `Archive/web_interface/src/app/api/network/route.ts` - Includes funders in API
+- `web_interface/scripts/create-database-n11.py` - Added funding tables
+- `web_interface/scripts/process-sqlite-data-n11.js` - Processes funding data
+- `web_interface/src/app/api/network/route.ts` - Includes funders in API
 - `analysis/run_all_analysis.py` - Includes geographic/temporal visualization
 - `data/README.md` - Documents funding files
 - `analysis/README.md` - Documents new scripts
@@ -98,7 +98,7 @@ Funding data has been extracted and added to the N=11 dataset structure.
 1. **Rebuild database with funding data:**
 
    ```bash
-   cd Archive/web_interface
+   cd web_interface
    npm run data:rebuild
    ```
 

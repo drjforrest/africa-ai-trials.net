@@ -33,6 +33,13 @@ This repository contains data, analysis code, and results for a network analysis
 │       ├── table_1_trials.csv
 │       ├── table_2_metrics.csv
 │       └── supplementary/            # Supplementary tables
+├── web_interface/                   # Next.js interactive visualization app
+│   ├── src/                         # Next.js source code
+│   │   ├── app/                     # App router pages
+│   │   ├── components/              # React components
+│   │   └── data/                    # Data files
+│   ├── scripts/                     # Data processing scripts
+│   └── package.json
 ├── docs/                            # Documentation
 │   ├── SEARCH_STRATEGIES.md
 │   ├── DATA_EXTRACTION_PROTOCOL.md
