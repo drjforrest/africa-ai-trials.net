@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import NetworkDiagram from '@/components/NetworkDiagram';
-import TimeSlider from '@/components/TimeSlider';
-import FilterPanel from '@/components/FilterPanel';
-import StatsPanel from '@/components/StatsPanel';
 import ExportPanel from '@/components/ExportPanel';
-import LayoutControls, { LayoutType } from '@/components/LayoutControls';
-import NetworkMetrics from '@/components/NetworkMetrics';
+import { LayoutType } from '@/components/LayoutControls';
 import Navbar from '@/components/Navbar';
+import NetworkDiagram from '@/components/NetworkDiagram';
+import NetworkMetrics from '@/components/NetworkMetrics';
+import StatsPanel from '@/components/StatsPanel';
+import TimeSlider from '@/components/TimeSlider';
+import CountryNetworkFigure from '@/components/figures/CountryNetworkFigure';
+import TemporalEvolution from '@/components/figures/TemporalEvolution';
 import data from '@/data/network-data.json';
+import { useMemo, useState } from 'react';
 
 export default function Home() {
   const years = data.nodes.map(node => node.year);
@@ -336,6 +337,18 @@ export default function Home() {
                       filteredLinks={filteredData.links}
                     />
                   </div>
+
+                  {/* Geographic Network Figure */}
+                  <div className="mt-6 bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Geographic Network Distribution</h2>
+                    <CountryNetworkFigure width={800} height={500} />
+                  </div>
+
+                  {/* Temporal Evolution Figure */}
+                  <div className="mt-6 bg-white rounded-xl shadow-lg border border-gray-100 p-6">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4">Temporal Network Evolution</h2>
+                    <TemporalEvolution width={800} height={500} />
+                  </div>
                 </div>
 
                 {/* Selected Node Details */}
@@ -393,16 +406,16 @@ export default function Home() {
                             <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Network Entry</div>
                             <div className="text-sm font-semibold text-blue-600 mt-1">{selectedNode.year}</div>
                           </div>
-                          {selectedNode.foundingYear && (
+                          {('foundingYear' in selectedNode && (selectedNode as any).foundingYear) && (
                             <div>
                               <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">Founded</div>
-                              <div className="text-sm text-gray-900 mt-1">{selectedNode.foundingYear}</div>
+                              <div className="text-sm text-gray-900 mt-1">{(selectedNode as any).foundingYear}</div>
                             </div>
                           )}
                         </div>
                       </div>
                       
-                      {(selectedNode.specialization || selectedNode.focus || selectedNode.condition || selectedNode.technology) && (
+                      {(selectedNode.specialization || ('focus' in selectedNode && (selectedNode as any).focus) || selectedNode.condition || selectedNode.technology) && (
                         <div className="md:col-span-2 bg-gradient-to-br from-gray-50 to-indigo-50 rounded-lg p-4 border border-gray-200">
                           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
                             {selectedNode.type === 'clinical_trial' ? 'Medical Condition & Technology' : 'Specialization & Focus'}
@@ -414,10 +427,10 @@ export default function Home() {
                                 <div className="text-sm font-medium text-gray-900">{selectedNode.specialization}</div>
                               </div>
                             )}
-                            {selectedNode.focus && (
+                            {'focus' in selectedNode && (selectedNode as any).focus && (
                               <div>
                                 <div className="text-xs text-gray-500">Focus Area</div>
-                                <div className="text-sm font-medium text-gray-900">{selectedNode.focus}</div>
+                                <div className="text-sm font-medium text-gray-900">{(selectedNode as any).focus}</div>
                               </div>
                             )}
                             {selectedNode.condition && (

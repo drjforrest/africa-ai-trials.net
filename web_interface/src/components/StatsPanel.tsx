@@ -26,8 +26,8 @@ const StatsPanel: React.FC<StatsPanelProps> = ({ filteredNodes, filteredLinks })
   const nodeDegrees = new Map<string, number>();
   filteredNodes.forEach(node => nodeDegrees.set(node.id, 0));
   filteredLinks.forEach(link => {
-    const sourceId = typeof link.source === 'string' ? link.source : link.source.id;
-    const targetId = typeof link.target === 'string' ? link.target : link.target.id;
+    const sourceId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
+    const targetId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
     nodeDegrees.set(sourceId, (nodeDegrees.get(sourceId) || 0) + 1);
     nodeDegrees.set(targetId, (nodeDegrees.get(targetId) || 0) + 1);
   });

@@ -1,14 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import DataTables from '@/components/DataTables';
 import ExportPanel from '@/components/ExportPanel';
 import Navbar from '@/components/Navbar';
+import { useEffect, useState } from 'react';
 
 export default function DataPage() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<{ nodes: any[]; links: any[]; metadata?: { lastUpdated: string; [key: string]: any } } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -21,7 +21,7 @@ export default function DataPage() {
         const result = await response.json();
         setData(result);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : 'An unknown error occurred');
         console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
@@ -84,7 +84,7 @@ export default function DataPage() {
           <p className="mt-2 text-lg text-gray-600">
             View and export the current network dataset from live database.
           </p>
-          {data.metadata && (
+          {data?.metadata && (
             <div className="mt-2 text-sm text-gray-500">
               Last updated: {new Date(data.metadata.lastUpdated).toLocaleString()}
             </div>
@@ -99,8 +99,8 @@ export default function DataPage() {
               {/* Sidebar */}
               <div className="lg:col-span-1 space-y-6">
                 <ExportPanel
-                  filteredNodes={data.nodes}
-                  filteredLinks={data.links}
+                  filteredNodes={data?.nodes || []}
+                  filteredLinks={data?.links || []}
                 />
               </div>
               
@@ -112,11 +112,13 @@ export default function DataPage() {
                       Live Database Content
                     </h2>
                     <div className="text-sm text-gray-500">
-                      {data.nodes.length} entities, {data.links.length} relationships
+                      {data?.nodes.length || 0} entities, {data?.links.length || 0} relationships
                     </div>
                   </div>
                   
-                  <DataTables currentData={data} />
+                  {data && (
+                    <DataTables currentData={data as any} />
+                  )}
                 </div>
               </div>
             </div>

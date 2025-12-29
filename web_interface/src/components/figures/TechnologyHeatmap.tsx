@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
 import * as d3 from 'd3';
-import data from '@/data/network-data.json';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface TechnologyHeatmapProps {
   width?: number;
@@ -66,10 +65,10 @@ const TechnologyHeatmap: React.FC<TechnologyHeatmapProps> = ({
     };
 
     // Convert to D3 format
-    const heatmapData = [];
+    const heatmapData: Array<{ country: string; technology: string; value: number; present: boolean }> = [];
     countries.forEach(country => {
       technologies.forEach(tech => {
-        const value = manuscriptData[country][tech];
+        const value = (manuscriptData as any)[country]?.[tech] || 0;
         heatmapData.push({
           country,
           technology: tech,
@@ -99,7 +98,7 @@ const TechnologyHeatmap: React.FC<TechnologyHeatmapProps> = ({
       .padding(0.05);
 
     // Binary color scale - red for present (1), blue for absent (0)
-    const colorScale = (value) => value === 1 ? '#dc2626' : '#1e40af';
+    const colorScale = (value: number) => value === 1 ? '#dc2626' : '#1e40af';
 
     // Create cells
     container.selectAll('rect')

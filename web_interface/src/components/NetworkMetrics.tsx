@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useMemo } from 'react';
 import data from '@/data/network-data.json';
+import React, { useMemo, useState } from 'react';
 
 interface NetworkMetricsProps {
   filteredNodes?: typeof import('@/data/network-data.json').nodes;
@@ -12,6 +12,7 @@ const NetworkMetrics: React.FC<NetworkMetricsProps> = ({
   filteredNodes = data.nodes, 
   filteredLinks = data.links 
 }) => {
+  const [activeTab, setActiveTab] = useState<'network' | 'trials' | 'institutions'>('network');
   
   const metrics = useMemo(() => {
     // Filter out funders for core network analysis (45 entities methodology)
@@ -140,7 +141,33 @@ const NetworkMetrics: React.FC<NetworkMetricsProps> = ({
     const trialInstitutionConnections = filteredLinks.filter(link => 
       link.type === 'primary_investigator' || link.type === 'secondary_investigator'
     );
-    const avgInstitutionsPerTrial = trialInstitutionConnections.length / trials.length;
+    const avgInstitutionsPerTrial = trials.length > 0 ? trialInstitutionConnections.length / trials.length : 0;
+    
+    // Institution metrics
+    const institutions = coreNodes.filter(node => node.type === 'institution');
+    const institutionSectors = new Map<string, number>();
+    institutions.forEach(inst => {
+      const sector = inst.sector || 'Unknown';
+      institutionSectors.set(sector, (institutionSectors.get(sector) || 0) + 1);
+    });
+    
+    // Calculate institution connections
+    const institutionConnections = new Map<string, number>();
+    institutions.forEach(inst => {
+      const connections = filteredLinks.filter(link => {
+        const sourceId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
+        const targetId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
+        return sourceId === inst.id || targetId === inst.id;
+      }).length;
+      institutionConnections.set(inst.id, connections);
+    });
+    
+    const avgInstitutionConnections = institutions.length > 0 
+      ? Array.from(institutionConnections.values()).reduce((sum, c) => sum + c, 0) / institutions.length 
+      : 0;
+    
+    // Institution countries
+    const institutionCountries = new Set(institutions.map(inst => inst.country));
     
     return {
       // Core metrics
@@ -174,33 +201,36 @@ const NetworkMetrics: React.FC<NetworkMetricsProps> = ({
         kenya: kenyaTrials,
         nigeria: nigeriaTrials,
         multiCountry: multiCountryTrials,
-        rural: Math.round(trials.filter(t => t.country?.includes('rural') || Math.random() > 0.7).length / trials.length * 100),
-        urban: Math.round(trials.filter(t => t.country?.includes('urban') || Math.random() > 0.6).length / trials.length * 100),
-        both: Math.round(trials.filter(t => t.country?.includes('both') || Math.random() > 0.5).length / trials.length * 100),
+        // Remove fabricated rural/urban/both percentages - not in data
         reachScore: Math.round(geographicReachScore * 100) / 100,
-        crossBorderTies: Math.round(multiCountryTrials * 2.5 * 10) / 10,
-        regionalClusterCoeff: 0.71 // Static based on your analysis
+        crossBorderTies: multiCountryTrials,
+        // Calculate regional cluster coefficient from actual data if available, otherwise omit
+        regionalClusterCoeff: null
       },
       
       // Funding metrics
       funding: {
         foundationLed: totalFundingRelations > 0 ? Math.round(foundationFunding / totalFundingRelations * 100) : 0,
         govtAgency: totalFundingRelations > 0 ? Math.round(govtFunding / totalFundingRelations * 100) : 0,
-        mixed: 14, // From your analysis
-        avgPerTrial: Math.round(avgFundingPerTrial / 1000000 * 10) / 10,
+        mixed: totalFundingRelations > 0 ? Math.round(100 - (foundationFunding / totalFundingRelations * 100) - (govtFunding / totalFundingRelations * 100)) : 0,
+        avgPerTrial: trials.length > 0 ? Math.round(avgFundingPerTrial / 1000000 * 10) / 10 : 0,
         diversityIndex: Math.round(fundingDiversityIndex * 100) / 100,
-        funderInstitutionTies: Math.round(fundingLinks.length / trials.length * 10) / 10,
-        networkDiameter: 3.6 // From your analysis
+        funderInstitutionTies: trials.length > 0 ? Math.round(fundingLinks.length / trials.length * 10) / 10 : 0
+        // Remove hardcoded networkDiameter - not in source data
       },
       
-      // Research metrics
+      // Research metrics - only use data that exists
       research: {
-        totalPublications: 15, // From your analysis
-        pubsPerTrial: 2.1,
-        avgImpactFactor: 12.3,
-        highImpactTrials: Math.round(trialsWithPubs / trials.length * 100),
-        citationNetworkDensity: 0.43,
-        knowledgeFlowBetweenness: 0.59
+        // Remove hardcoded publication metrics - not in source data
+        highImpactTrials: trials.length > 0 ? Math.round(trialsWithPubs / trials.length * 100) : 0
+      },
+      
+      // Institution metrics
+      institutions: {
+        total: institutions.length,
+        sectors: Object.fromEntries(institutionSectors),
+        avgConnections: Math.round(avgInstitutionConnections * 10) / 10,
+        countries: institutionCountries.size
       }
     };
   }, [filteredNodes, filteredLinks]);
@@ -214,112 +244,215 @@ const NetworkMetrics: React.FC<NetworkMetricsProps> = ({
         </div>
       </div>
       
-      <div className="text-xs text-gray-600 mb-4 italic">
-        Network metrics calculated using relationship data from {metrics.totalEntities} entities across {metrics.trialsCount} trials. 
-        Centrality represents number of direct connections; betweenness measures information flow control (0-1 scale); 
-        clustering coefficient indicates network cohesion (0-1 scale); density measures proportion of potential connections 
-        realized (0-1 scale). Ecosystem role determined through qualitative analysis of relationship patterns.
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-4">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('network')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'network'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Network Characteristics
+          </button>
+          <button
+            onClick={() => setActiveTab('trials')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'trials'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Trial Characteristics
+          </button>
+          <button
+            onClick={() => setActiveTab('institutions')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'institutions'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Institution Characteristics
+          </button>
+        </nav>
       </div>
       
-      <div className="overflow-x-auto">
-        <table className="min-w-full text-sm">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="py-2 px-3 text-left font-medium text-gray-700">Category</th>
-              <th className="py-2 px-3 text-left font-medium text-gray-700">Distribution</th>
-              <th className="py-2 px-3 text-left font-medium text-gray-700">Implementation</th>
-              <th className="py-2 px-3 text-left font-medium text-gray-700">Network Properties</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            <tr className="hover:bg-gray-50">
-              <td className="py-3 px-3 font-medium text-gray-900">Technology Types</td>
-              <td className="py-3 px-3 text-gray-600">
-                • Deep learning ({metrics.techTypes.deepLearning}/{metrics.trialsCount} trials)<br/>
-                • Computer vision ({metrics.techTypes.computerVision}/{metrics.trialsCount})<br/>
-                • LLMs ({metrics.techTypes.llm}/{metrics.trialsCount})
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                {metrics.techTypes.commerciallyDeployed}% commercially deployed
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                • Mean centrality score: {metrics.meanCentrality}<br/>
-                • Collaboration density: {metrics.collaborationDensity}<br/>
-                • Tech partnership strength: {metrics.techPartnershipStrength} (scale 0-1)
-              </td>
-            </tr>
-            
-            <tr className="hover:bg-gray-50">
-              <td className="py-3 px-3 font-medium text-gray-900">Clinical Areas</td>
-              <td className="py-3 px-3 text-gray-600">
-                • Diagnostic imaging ({metrics.clinical.diagnosticImaging}%)<br/>
-                • Primary care decision support ({metrics.clinical.primaryCare}%)<br/>
-                • Specialized diagnostics ({metrics.clinical.specialized}%)
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                {metrics.clinical.fullyIntegrated}% fully integrated into clinical workflow
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                • Clinical integration index: {metrics.clinical.integrationIndex}<br/>
-                • Provider network breadth: {metrics.clinical.providerNetworkBreadth} institutions/trial<br/>
-                • Cross-specialty links: {metrics.clinical.crossSpecialtyLinks}/trial
-              </td>
-            </tr>
-            
-            <tr className="hover:bg-gray-50">
-              <td className="py-3 px-3 font-medium text-gray-900">Geographic Distribution</td>
-              <td className="py-3 px-3 text-gray-600">
-                • Kenya ({metrics.geographic.kenya} trials)<br/>
-                • Nigeria ({metrics.geographic.nigeria} trials)<br/>
-                • Multi-country ({metrics.geographic.multiCountry} trials)
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                Rural implementation: 29%<br/>
-                Urban: 43%<br/>
-                Both: 28%
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                • Geographic reach score: {metrics.geographic.reachScore}<br/>
-                • Cross-border ties: {metrics.geographic.crossBorderTies}/trial<br/>
-                • Regional cluster coefficient: {metrics.geographic.regionalClusterCoeff}
-              </td>
-            </tr>
-            
-            <tr className="hover:bg-gray-50">
-              <td className="py-3 px-3 font-medium text-gray-900">Funding Mechanisms</td>
-              <td className="py-3 px-3 text-gray-600">
-                • Foundation-led ({metrics.funding.foundationLed}%)<br/>
-                • Government agency ({metrics.funding.govtAgency}%)<br/>
-                • Mixed sources ({metrics.funding.mixed}%)
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                ${metrics.funding.avgPerTrial}M average per trial
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                • Funding diversity index: {metrics.funding.diversityIndex}<br/>
-                • Funder-institution ties: {metrics.funding.funderInstitutionTies}/trial<br/>
-                • Funding network diameter: {metrics.funding.networkDiameter}
-              </td>
-            </tr>
-            
-            <tr className="hover:bg-gray-50">
-              <td className="py-3 px-3 font-medium text-gray-900">Research Output</td>
-              <td className="py-3 px-3 text-gray-600">
-                • {metrics.research.totalPublications} total publications<br/>
-                • {metrics.research.pubsPerTrial} publications per trial<br/>
-                • Impact factor avg: {metrics.research.avgImpactFactor}
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                {metrics.research.highImpactTrials}% with at least one high-impact publication
-              </td>
-              <td className="py-3 px-3 text-gray-600">
-                • Citation network density: {metrics.research.citationNetworkDensity}<br/>
-                • Knowledge flow betweenness: {metrics.research.knowledgeFlowBetweenness}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {/* Network Characteristics Tab */}
+      {activeTab === 'network' && (
+        <div>
+          <div className="text-xs text-gray-600 mb-4 italic">
+            Network metrics calculated using relationship data from {metrics.totalEntities} entities across {metrics.trialsCount} trials. 
+            Centrality represents number of direct connections; density measures proportion of potential connections realized (0-1 scale).
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Metric</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Value</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Description</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Total Entities</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.totalEntities}</td>
+                  <td className="py-3 px-3 text-gray-600">Core network entities (excluding funders)</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Total Connections</td>
+                  <td className="py-3 px-3 text-gray-600">{filteredLinks.length}</td>
+                  <td className="py-3 px-3 text-gray-600">Number of relationships in the network</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Mean Centrality</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.meanCentrality}</td>
+                  <td className="py-3 px-3 text-gray-600">Average number of connections per entity</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Collaboration Density</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.collaborationDensity}</td>
+                  <td className="py-3 px-3 text-gray-600">Proportion of potential connections realized (0-1 scale)</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Tech Partnership Strength</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.techPartnershipStrength}</td>
+                  <td className="py-3 px-3 text-gray-600">Strength of technology transfer partnerships (0-1 scale)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Trial Characteristics Tab */}
+      {activeTab === 'trials' && (
+        <div>
+          <div className="text-xs text-gray-600 mb-4 italic">
+            Characteristics of {metrics.trialsCount} clinical trials in the network.
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Category</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Distribution</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Details</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Technology Types</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    • Deep learning: {metrics.techTypes.deepLearning}/{metrics.trialsCount} trials<br/>
+                    • Computer vision: {metrics.techTypes.computerVision}/{metrics.trialsCount} trials<br/>
+                    • LLMs: {metrics.techTypes.llm}/{metrics.trialsCount} trials
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">
+                    {metrics.techTypes.commerciallyDeployed}% commercially deployed
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Clinical Areas</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    • Diagnostic imaging: {metrics.clinical.diagnosticImaging}%<br/>
+                    • Primary care decision support: {metrics.clinical.primaryCare}%<br/>
+                    • Specialized diagnostics: {metrics.clinical.specialized}%
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">
+                    {metrics.clinical.fullyIntegrated}% fully integrated into clinical workflow<br/>
+                    Integration index: {metrics.clinical.integrationIndex}
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Geographic Distribution</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    • Kenya: {metrics.geographic.kenya} trials<br/>
+                    • Nigeria: {metrics.geographic.nigeria} trials<br/>
+                    • Multi-country: {metrics.geographic.multiCountry} trials
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">
+                    Geographic reach score: {metrics.geographic.reachScore}<br/>
+                    Cross-border trials: {metrics.geographic.crossBorderTies}
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Funding</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    • Foundation-led: {metrics.funding.foundationLed}%<br/>
+                    • Government agency: {metrics.funding.govtAgency}%<br/>
+                    • Mixed sources: {metrics.funding.mixed}%
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">
+                    Average per trial: ${metrics.funding.avgPerTrial}M<br/>
+                    Diversity index: {metrics.funding.diversityIndex}<br/>
+                    Funder-institution ties: {metrics.funding.funderInstitutionTies}/trial
+                  </td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Network Integration</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    Provider network breadth: {metrics.clinical.providerNetworkBreadth} institutions/trial<br/>
+                    Cross-specialty links: {metrics.clinical.crossSpecialtyLinks}/trial
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">
+                    {metrics.research.highImpactTrials}% with completed status and sample size &gt; 500
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      
+      {/* Institution Characteristics Tab */}
+      {activeTab === 'institutions' && (
+        <div>
+          <div className="text-xs text-gray-600 mb-4 italic">
+            Characteristics of {metrics.institutions.total} institutions in the network.
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Category</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Distribution</th>
+                  <th className="py-2 px-3 text-left font-medium text-gray-700">Network Integration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Total Institutions</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.institutions.total}</td>
+                  <td className="py-3 px-3 text-gray-600">Core network institutions (excluding funders)</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Sector Distribution</td>
+                  <td className="py-3 px-3 text-gray-600">
+                    {Object.entries(metrics.institutions.sectors).map(([sector, count]) => (
+                      <div key={sector}>• {sector}: {count}</div>
+                    ))}
+                  </td>
+                  <td className="py-3 px-3 text-gray-600">Breakdown by institutional sector</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Average Connections</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.institutions.avgConnections}</td>
+                  <td className="py-3 px-3 text-gray-600">Average number of connections per institution</td>
+                </tr>
+                <tr className="hover:bg-gray-50">
+                  <td className="py-3 px-3 font-medium text-gray-900">Geographic Spread</td>
+                  <td className="py-3 px-3 text-gray-600">{metrics.institutions.countries} countries</td>
+                  <td className="py-3 px-3 text-gray-600">Number of countries with institutions</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

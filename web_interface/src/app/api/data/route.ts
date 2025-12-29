@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import Database from 'better-sqlite3';
+import { NextResponse } from 'next/server';
 import path from 'path';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'network.db');
@@ -67,7 +67,7 @@ export async function GET() {
 
     // Create nodes
     const nodes = [
-      ...institutions.map((item, index) => ({
+      ...institutions.map((item: any, index) => ({
         id: `I${index + 1}`,
         originalId: item.originalId,
         title: item.title,
@@ -80,7 +80,7 @@ export async function GET() {
         specialization: item.specialization,
         size: item.size || 'Unknown'
       })),
-      ...companies.map((item, index) => ({
+      ...companies.map((item: any, index) => ({
         id: `C${index + 1}`,
         originalId: item.originalId,
         title: item.title,
@@ -93,7 +93,7 @@ export async function GET() {
         focus: item.focus,
         technology: item.technology
       })),
-      ...clinicalTrials.map((item, index) => ({
+      ...clinicalTrials.map((item: any, index) => ({
         id: `T${index + 1}`,
         originalId: item.originalId,
         title: item.title,
@@ -106,7 +106,7 @@ export async function GET() {
         technology: item.technology,
         sampleSize: item.sampleSize
       })),
-      ...fundingSources.map((item, index) => ({
+      ...fundingSources.map((item: any, index) => ({
         id: `F${index + 1}`,
         originalId: item.originalId,
         title: item.title,
@@ -141,7 +141,7 @@ export async function GET() {
     `).all();
 
     // Convert relationships to links
-    const links = relationships.map(rel => {
+    const links = relationships.map((rel: any) => {
       const sourceId = idMap.get(rel.entity1_id);
       const targetId = idMap.get(rel.entity2_id);
       

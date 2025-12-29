@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 import data from '@/data/network-data.json';
+import React, { useState } from 'react';
 
 interface DataTablesProps {
   currentData?: typeof data;
@@ -84,7 +84,7 @@ const DataTables: React.FC<DataTablesProps> = ({ currentData = data }) => {
                     <td className="py-3 px-4 text-sm text-gray-600 font-medium">{node.year}</td>
                     <td className="py-3 px-4 text-sm text-gray-500">{node.foundingYear || 'N/A'}</td>
                     <td className="py-3 px-4 text-sm text-gray-600">
-                      {node.specialization || node.focus || node.condition || 'N/A'}
+                      {node.specialization || ('focus' in node && node.focus) || ('condition' in node && node.condition) || 'N/A'}
                     </td>
                   </tr>
                 ))}

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
-import * as d3 from 'd3';
 import data from '@/data/network-data.json';
+import * as d3 from 'd3';
+import React, { useEffect, useRef } from 'react';
 
 interface NetworkNode extends d3.SimulationNodeDatum {
   id: string;
@@ -66,7 +66,7 @@ const MainNetworkFigure: React.FC<MainNetworkFigureProps> = ({
       const sourceInCore = coreNodes.some(n => n.id === link.source);
       const targetInCore = coreNodes.some(n => n.id === link.target);
       return sourceInCore && targetInCore;
-    }) as NetworkLink[];
+    }) as unknown as NetworkLink[];
 
     // Create scales
     const nodeColorScale = d3.scaleOrdinal<string>()

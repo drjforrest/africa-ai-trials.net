@@ -11,7 +11,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({ filteredNodes, filteredLinks 
   const exportAsCSV = () => {
     const nodesCSV = [
       ['ID', 'Title', 'Author', 'Year'],
-      ...filteredNodes.map(node => [node.id, node.title, node.author, node.year])
+      ...filteredNodes.map(node => [node.id, node.title, ('author' in node ? node.author : '') || '', node.year])
     ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
     const linksCSV = [
@@ -31,7 +31,7 @@ const ExportPanel: React.FC<ExportPanelProps> = ({ filteredNodes, filteredLinks 
       stats: {
         nodeCount: filteredNodes.length,
         linkCount: filteredLinks.length,
-        authorCount: new Set(filteredNodes.map(n => n.author)).size
+        authorCount: new Set(filteredNodes.map(n => ('author' in n && n.author ? n.author : null)).filter(Boolean)).size
       }
     };
     
@@ -73,7 +73,8 @@ const ExportPanel: React.FC<ExportPanelProps> = ({ filteredNodes, filteredLinks 
 
   const generateReport = () => {
     const authorCounts = filteredNodes.reduce((acc, node) => {
-      acc[node.author] = (acc[node.author] || 0) + 1;
+      const author: string = ('author' in node && node.author) ? String(node.author) : 'Unknown';
+      acc[author] = (acc[author] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -105,7 +106,7 @@ ${Object.entries(yearCounts)
   .join('\n')}
 
 ## Papers
-${filteredNodes.map(node => `- ${node.id}: "${node.title}" by ${node.author} (${node.year})`).join('\n')}
+${filteredNodes.map(node => `- ${node.id}: "${node.title}" by ${('author' in node && node.author ? node.author : 'Unknown')} (${node.year})`).join('\n')}
 
 ## Connections
 ${filteredLinks.map(link => `- ${link.source} → ${link.target}`).join('\n')}

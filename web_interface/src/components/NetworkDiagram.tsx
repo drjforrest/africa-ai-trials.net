@@ -81,81 +81,95 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
   const [tooltip, setTooltip] = useState<{ node: Node; x: number; y: number } | null>(null);
 
   useEffect(() => {
-    if (ref.current) {
-      const svg = d3.select(ref.current);
-      svg.selectAll("*").remove(); // Clear previous render
+    if (!ref.current) return;
+    
+    const svg = d3.select(ref.current);
+    svg.selectAll("*").remove(); // Clear previous render
 
-      const width = 800;
-      const height = 600;
+    const width = 800;
+    const height = 600;
 
-      svg.attr('width', width).attr('height', height);
+    svg.attr('width', width).attr('height', height);
+    
+    // Early return if no data
+    if (!data || !data.nodes || data.nodes.length === 0) {
+      svg.append('text')
+        .attr('x', width / 2)
+        .attr('y', height / 2)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#666')
+        .text('No network data available');
+      return;
+    }
 
-      // Apply filters
-      let filteredNodes = data.nodes.filter(node => node.year <= year);
-      
-      // Search filter
-      if (searchTerm) {
-        filteredNodes = filteredNodes.filter(node => {
-          const searchLower = searchTerm.toLowerCase();
-          const nodeWithFocus = node as Node & { focus?: string };
-          return (
-            node.title.toLowerCase().includes(searchLower) ||
-            node.country.toLowerCase().includes(searchLower) ||
-            node.type.toLowerCase().includes(searchLower) ||
-            (node.specialization && node.specialization.toLowerCase().includes(searchLower)) ||
-            (nodeWithFocus.focus && nodeWithFocus.focus.toLowerCase().includes(searchLower)) ||
-            (node.condition && node.condition.toLowerCase().includes(searchLower))
-          );
-        });
-      }
-      
-      // Type filter
-      if (selectedTypes.length > 0) {
-        filteredNodes = filteredNodes.filter(node =>
-          selectedTypes.includes(node.type)
+    // Apply filters
+    let filteredNodes = data.nodes.filter(node => node.year <= year);
+    
+    // Search filter
+    if (searchTerm) {
+      filteredNodes = filteredNodes.filter(node => {
+        const searchLower = searchTerm.toLowerCase();
+        const nodeWithFocus = node as Node & { focus?: string };
+        return (
+          node.title.toLowerCase().includes(searchLower) ||
+          node.country.toLowerCase().includes(searchLower) ||
+          node.type.toLowerCase().includes(searchLower) ||
+          (node.specialization && node.specialization.toLowerCase().includes(searchLower)) ||
+          (nodeWithFocus.focus && nodeWithFocus.focus.toLowerCase().includes(searchLower)) ||
+          (node.condition && node.condition.toLowerCase().includes(searchLower))
         );
-      }
-      
-      // Country filter
-      if (selectedCountries.length > 0) {
-        filteredNodes = filteredNodes.filter(node =>
-          selectedCountries.some(country => node.country.includes(country))
-        );
-      }
-      
-      // Category filter
-      if (selectedCategories.length > 0) {
-        filteredNodes = filteredNodes.filter(node =>
-          selectedCategories.includes(node.category)
-        );
-      }
-      
-      const filteredNodeIds = new Set(filteredNodes.map(node => node.id));
-      const filteredLinks = data.links.filter(link =>
-        filteredNodeIds.has(link.source as string) && filteredNodeIds.has(link.target as string)
+      });
+    }
+    
+    // Type filter
+    if (selectedTypes.length > 0) {
+      filteredNodes = filteredNodes.filter(node =>
+        selectedTypes.includes(node.type)
       );
+    }
+    
+    // Country filter
+    if (selectedCountries.length > 0) {
+      filteredNodes = filteredNodes.filter(node =>
+        selectedCountries.some(country => node.country.includes(country))
+      );
+    }
+    
+    // Category filter
+    if (selectedCategories.length > 0) {
+      filteredNodes = filteredNodes.filter(node =>
+        selectedCategories.includes(node.category)
+      );
+    }
+    
+    const filteredNodeIds = new Set(filteredNodes.map(node => node.id));
+    const filteredLinks = (data.links || []).filter(link => {
+      const sourceId = typeof link.source === 'string' ? link.source : (link.source as any)?.id;
+      const targetId = typeof link.target === 'string' ? link.target : (link.target as any)?.id;
+      return filteredNodeIds.has(sourceId) && filteredNodeIds.has(targetId);
+    });
 
-      // Calculate node degrees for sizing (degree centrality)
-      const nodeDegrees = new Map<string, number>();
-      filteredNodes.forEach(node => nodeDegrees.set(node.id, 0));
-      filteredLinks.forEach(link => {
+    // Calculate node degrees for sizing (degree centrality)
+    const nodeDegrees = new Map<string, number>();
+    filteredNodes.forEach(node => nodeDegrees.set(node.id, 0));
+    filteredLinks.forEach(link => {
         const sourceId = typeof link.source === 'string' ? link.source : (link.source as Node).id;
         const targetId = typeof link.target === 'string' ? link.target : (link.target as Node).id;
         nodeDegrees.set(sourceId, (nodeDegrees.get(sourceId) || 0) + 1);
         nodeDegrees.set(targetId, (nodeDegrees.get(targetId) || 0) + 1);
-      });
-      
-      // Calculate degree centrality (normalized by max degree)
-      const maxDegree = Math.max(...Array.from(nodeDegrees.values()), 1);
-      const degreeCentrality = new Map<string, number>();
-      nodeDegrees.forEach((degree, nodeId) => {
+    });
+    
+    // Calculate degree centrality (normalized by max degree)
+    const maxDegree = Math.max(...Array.from(nodeDegrees.values()), 1);
+    const degreeCentrality = new Map<string, number>();
+    nodeDegrees.forEach((degree, nodeId) => {
         degreeCentrality.set(nodeId, degree / maxDegree);
-      });
+    });
 
-      // Apply different layout algorithms
-      let simulation: d3.Simulation<Node, undefined>;
-      
-      if (layout === 'force') {
+    // Apply different layout algorithms
+    let simulation: d3.Simulation<Node, undefined>;
+    
+    if (layout === 'force') {
         // Match static figure layout: spring layout with k=0.5, iterations=50, seed=42
         // Using D3 force simulation with similar parameters
         // Initialize positions deterministically based on node IDs for reproducibility
@@ -174,7 +188,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           .alphaDecay(0.02) // Slower decay for more iterations
           .alpha(1) // Start with full alpha
           .restart();
-      } else if (layout === 'circular') {
+    } else if (layout === 'circular') {
         const radius = Math.min(width, height) / 2 - 50;
         filteredNodes.forEach((node, i) => {
           const angle = (i / filteredNodes.length) * 2 * Math.PI;
@@ -183,7 +197,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         });
         simulation = d3.forceSimulation(filteredNodes as Node[])
           .force('link', d3.forceLink(filteredLinks).id((d: any) => (d as Node).id).distance(linkDistance / 2));
-      } else if (layout === 'hierarchical') {
+    } else if (layout === 'hierarchical') {
         const hierarchy = d3.stratify<Node>()
           .id(d => d.id)
           .parentId(() => null)(filteredNodes as Node[]);
@@ -201,7 +215,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         
         simulation = d3.forceSimulation(filteredNodes as Node[])
           .force('link', d3.forceLink(filteredLinks).id((d: any) => (d as Node).id).distance(linkDistance / 3));
-      } else { // grid
+    } else { // grid
         const cols = Math.ceil(Math.sqrt(filteredNodes.length));
         const cellWidth = width / cols;
         const cellHeight = height / Math.ceil(filteredNodes.length / cols);
@@ -215,14 +229,14 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         
         simulation = d3.forceSimulation(filteredNodes as Node[])
           .force('link', d3.forceLink(filteredLinks).id((d: any) => (d as Node).id).distance(linkDistance / 4));
-      }
+    }
 
-      const container = svg.append('g');
+    const container = svg.append('g');
 
-      // Color function matching static figure
-      // Trials: light gray circles
-      // Institutions: squares colored by sector (Academia=blue, Funders=purple, Industry=orange, Government=red)
-      const getNodeColor = (d: Node): string => {
+    // Color function matching static figure
+    // Trials: light gray circles
+    // Institutions: squares colored by sector (Academia=blue, Funders=purple, Industry=orange, Government=red)
+    const getNodeColor = (d: Node): string => {
         if (d.type === 'clinical_trial') {
           return '#E8E8E8'; // Light gray for trials
         }
@@ -243,36 +257,36 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           default:
             return '#666666'; // Gray fallback
         }
-      };
-      
-      // Color scales based on colorBy prop (for other modes)
-      let colorScale: (d: Node) => string;
-      
-      if (colorBy === 'year') {
+    };
+    
+    // Color scales based on colorBy prop (for other modes)
+    let colorScale: (d: Node) => string;
+    
+    if (colorBy === 'year') {
         const minYear = Math.min(...filteredNodes.map(n => n.year));
         const maxYear = Math.max(...filteredNodes.map(n => n.year));
         const yearScale = d3.scaleSequential()
           .domain([minYear, maxYear])
           .interpolator(d3.interpolateViridis);
         colorScale = (d: Node) => yearScale(d.year);
-      } else if (colorBy === 'type') {
+    } else if (colorBy === 'type') {
         // Use sector-based coloring for institutions, default for others
         colorScale = getNodeColor;
-      } else if (colorBy === 'country') {
+    } else if (colorBy === 'country') {
         const countries = [...new Set(filteredNodes.map(n => n.country))];
         const countryScale = d3.scaleOrdinal()
           .domain(countries)
           .range(d3.schemeSet3);
         colorScale = (d: Node) => countryScale(d.country) as string;
-      } else { // category
+    } else { // category
         const categories = [...new Set(filteredNodes.map(n => n.category))];
         const categoryScale = d3.scaleOrdinal()
           .domain(categories)
           .range(d3.schemeCategory10);
         colorScale = (d: Node) => categoryScale(d.category) as string;
-      }
+    }
 
-      const link = container.append('g')
+    const link = container.append('g')
         .selectAll('line')
         .data(filteredLinks)
         .join('line')
@@ -280,15 +294,15 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .attr('stroke-opacity', 0.2) // Low opacity matching static figure
         .attr('stroke-width', 0.5); // Thin edges matching static figure
 
-      // Separate trials (circles) and institutions (squares) - all non-trial types are squares
-      const trialNodes = filteredNodes.filter(n => n.type === 'clinical_trial');
-      const institutionNodes = filteredNodes.filter(n => 
+    // Separate trials (circles) and institutions (squares) - all non-trial types are squares
+    const trialNodes = filteredNodes.filter(n => n.type === 'clinical_trial');
+    const institutionNodes = filteredNodes.filter(n => 
         n.type === 'institution' || n.type === 'funder' || n.type === 'company'
-      );
-      
-      // Helper function for node size calculation (matching publication: min 200, max 2000, scaled to pixels)
-      // Publication uses same base calculation for all nodes, then trials get 0.6x multiplier
-      const getNodeSize = (nodeId: string, isTrial: boolean = false): number => {
+    );
+    
+    // Helper function for node size calculation (matching publication: min 200, max 2000, scaled to pixels)
+    // Publication uses same base calculation for all nodes, then trials get 0.6x multiplier
+    const getNodeSize = (nodeId: string, isTrial: boolean = false): number => {
         const centrality = degreeCentrality.get(nodeId) || 0;
         const MIN_SIZE = 10;  // Screen-appropriate min size (matches publication ratio)
         const MAX_SIZE = 25;  // Screen-appropriate max size (matches publication ratio)
@@ -300,10 +314,10 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         }
         
         return size;
-      };
+    };
 
-      // Draw trial nodes as circles (gray)
-      const trialCircles = container.append('g')
+    // Draw trial nodes as circles (gray)
+    const trialCircles = container.append('g')
         .selectAll('circle')
         .data(trialNodes)
         .join('circle')
@@ -322,9 +336,9 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .on('click', (event, d) => {
           if (onNodeClick) onNodeClick(d as any);
         });
-      
-      // Draw institution nodes as squares (colored by sector)
-      const institutionSquares = container.append('g')
+    
+    // Draw institution nodes as squares (colored by sector)
+    const institutionSquares = container.append('g')
         .selectAll('rect')
         .data(institutionNodes)
         .join('rect')
@@ -353,13 +367,13 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           if (onNodeClick) onNodeClick(d as any);
         });
 
-      // Add labels for institutions with degree > 5 (matching static figure)
-      // Labels positioned slightly above nodes (y - offset) as per publication
-      const highDegreeInstitutions = institutionNodes.filter(n => 
+    // Add labels for institutions with degree > 5 (matching static figure)
+    // Labels positioned slightly above nodes (y - offset) as per publication
+    const highDegreeInstitutions = institutionNodes.filter(n => 
         (nodeDegrees.get(n.id) || 0) > 5
-      );
-      
-      const labels = container.append('g')
+    );
+    
+    const labels = container.append('g')
         .selectAll('text')
         .data(highDegreeInstitutions)
         .join('text')
@@ -374,7 +388,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .attr('fill', '#000')
         .attr('font-weight', 'bold');
 
-      simulation.on('tick', () => {
+    simulation.on('tick', () => {
         link
           .attr('x1', (d: Link) => (d.source as Node).x || 0)
           .attr('y1', (d: Link) => (d.source as Node).y || 0)
@@ -400,22 +414,22 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         labels
           .attr('x', (d: any) => (d as Node).x || 0)
           .attr('y', (d: any) => (d as Node).y || 0);
-      });
+    });
 
-      // Add legend matching static figure
-      const legend = container.append('g')
+    // Add legend matching static figure
+    const legend = container.append('g')
         .attr('class', 'legend')
         .attr('transform', `translate(${width - 200}, 20)`);
-      
-      const legendItems = [
+    
+    const legendItems = [
         { label: 'Clinical Trials', shape: 'circle', color: '#E8E8E8', isCircle: true },
         { label: 'Academia', shape: 'square', color: '#2E86AB', isCircle: false },
         { label: 'Funders', shape: 'square', color: '#A23B72', isCircle: false },
         { label: 'Industry', shape: 'square', color: '#F18F01', isCircle: false },
         { label: 'Government', shape: 'square', color: '#C73E1D', isCircle: false }
-      ];
-      
-      legendItems.forEach((item, i) => {
+    ];
+    
+    legendItems.forEach((item, i) => {
         const legendItem = legend.append('g')
           .attr('transform', `translate(0, ${i * 25})`);
         
@@ -444,20 +458,19 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           .attr('font-size', '11px')
           .attr('fill', '#000')
           .text(`${item.label} (${item.shape}s)`);
-      });
+    });
 
-      const zoom = d3.zoom<SVGSVGElement, unknown>()
+    const zoom = d3.zoom<SVGSVGElement, unknown>()
         .scaleExtent([0.1, 4])
         .on('zoom', (event) => {
           container.attr('transform', event.transform);
         });
 
-      // Apply initial zoom to show entire network
-      const initialScale = 0.5; // Start at 50% zoom to show more of the network
-      svg.call(zoom.transform, d3.zoomIdentity.scale(initialScale).translate(width * 0.25 / initialScale, height * 0.25 / initialScale));
-      
-      svg.call(zoom);
-    }
+    // Apply initial zoom to show entire network
+    const initialScale = 0.5; // Start at 50% zoom to show more of the network
+    svg.call(zoom.transform, d3.zoomIdentity.scale(initialScale).translate(width * 0.25 / initialScale, height * 0.25 / initialScale));
+    
+    svg.call(zoom);
   }, [year, searchTerm, selectedTypes, selectedCountries, layout, forceStrength, linkDistance, colorBy, selectedCategories]);
 
   const drag = (simulation: d3.Simulation<Node, undefined>) => {
