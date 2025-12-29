@@ -1,0 +1,4 @@
+Measure,Degree,Betweenness,Closeness
+Degree,1.0,,1.0
+Betweenness,,1.0,
+Closeness,1.0,,1.0

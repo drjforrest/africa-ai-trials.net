@@ -1,0 +1,21 @@
+Metric,Value
+Total nodes,47
+Trials,11
+Institutions,36
+Total edges,99
+Network density,0.092
+Number of components,11
+Average degree,4.21
+Degree centralization,0.002
+,
+Degree centrality (mean ± SD),0.092 ± 0.048
+Degree centrality (median),0.087
+Degree centrality (range),"[0.022, 0.174]"
+,
+Betweenness centrality (mean ± SD),0.0000 ± 0.0000
+Betweenness centrality (median),0.0000
+Betweenness centrality (range),"[0.0000, 0.0000]"
+,
+Closeness centrality (mean ± SD),0.092 ± 0.048
+Closeness centrality (median),0.087
+Closeness centrality (range),"[0.022, 0.174]"

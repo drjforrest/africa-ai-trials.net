@@ -1,0 +1,37 @@
+node_id,node_type,node_name,country,sector,degree,degree_centrality,betweenness_centrality,closeness_centrality
+INST_007,institution,"Charite University, Berlin, Germany",Germany,Academia,8,0.17391304347826086,0.0,0.17391304347826086
+INST_031,institution,"University Hospital, Basel, Switzerland",Switzerland,Academia,8,0.17391304347826086,0.0,0.17391304347826086
+INST_028,institution,SolidarMed,Switzerland,Industry,8,0.17391304347826086,0.0,0.17391304347826086
+INST_027,institution,Radboud University Medical Center,Netherlands,Academia,8,0.17391304347826086,0.0,0.17391304347826086
+INST_019,institution,"Ministry of Health, Lesotho",Lesotho,Government,8,0.17391304347826086,0.0,0.17391304347826086
+INST_014,institution,"Institute of Tropical Medicine, Belgium",Belgium,Academia,8,0.17391304347826086,0.0,0.17391304347826086
+INST_012,institution,"Foundation for Innovative New Diagnostics, Switzerland",Switzerland,Funder,8,0.17391304347826086,0.0,0.17391304347826086
+INST_013,institution,Human Sciences Research Council,South Africa,Academia,8,0.17391304347826086,0.0,0.17391304347826086
+INST_018,institution,Mayo Clinic,USA,Funder,5,0.10869565217391304,0.0,0.10869565217391304
+INST_017,institution,Lancaster University,UK,Academia,5,0.10869565217391304,0.0,0.10869565217391304
+INST_036,institution,University of Zimbabwe,Zimbabwe,Academia,5,0.10869565217391304,0.0,0.10869565217391304
+INST_034,institution,"University of California, San Francisco",USA,Academia,5,0.10869565217391304,0.0,0.10869565217391304
+INST_023,institution,Neo Sense Vector (NSV),USA,Industry,5,0.10869565217391304,0.0,0.10869565217391304
+INST_008,institution,Dalio Philanthropies,USA,Funder,5,0.10869565217391304,0.0,0.10869565217391304
+INST_022,institution,National Institute of Arthritis and Musculoskeletal and Skin Diseases (NIAMS),USA,Funder,5,0.10869565217391304,0.0,0.10869565217391304
+INST_021,institution,National Center for Advancing Translational Sciences (NCATS),USA,Academia,5,0.10869565217391304,0.0,0.10869565217391304
+INST_011,institution,Eunice Kennedy Shriver National Institute of Child Health and Human Development (NICHD),USA,Funder,5,0.10869565217391304,0.0,0.10869565217391304
+INST_020,institution,National Cancer Institute (NCI),USA,Funder,5,0.10869565217391304,0.0,0.10869565217391304
+INST_032,institution,University of Birmingham,UK,Academia,4,0.08695652173913043,0.0,0.08695652173913043
+INST_026,institution,Penda Health,Kenya,Industry,4,0.08695652173913043,0.0,0.08695652173913043
+INST_025,institution,PATH International,USA,Funder,4,0.08695652173913043,0.0,0.08695652173913043
+INST_003,institution,Bill & Melinda Gates Foundation,USA,Funder,4,0.08695652173913043,0.0,0.08695652173913043
+INST_015,institution,Kilimanjaro Christian Medical Centre,Tanzania,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_002,institution,Beth Israel Deaconess Medical Center,USA,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_033,institution,University of Botswana,Botswana,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_004,institution,Botswana Harvard AIDS Institute Partner,Botswana,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_030,institution,The London School of Hygiene & Tropical Medicine,UK,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_029,institution,Tanzanian National Institute of Medical Research,Tanzania,Academia,3,0.06521739130434782,0.0,0.06521739130434782
+INST_001,institution,Association for Research in Vision & Ophthalmology (ARVO),USA,Funder,2,0.043478260869565216,0.0,0.043478260869565216
+INST_005,institution,CDC (U.S. Centers for Disease Control and Prevention),USA,Funder,2,0.043478260869565216,0.0,0.043478260869565216
+INST_006,institution,Centre for Infectious Disease Research in Zambia,Zambia,Academia,2,0.043478260869565216,0.0,0.043478260869565216
+INST_024,institution,Orbis International,USA,Funder,2,0.043478260869565216,0.0,0.043478260869565216
+INST_010,institution,EPFL Tech4Dev,Switzerland,Funder,2,0.043478260869565216,0.0,0.043478260869565216
+INST_038,institution,Université de Genève,Switzerland,Academia,2,0.043478260869565216,0.0,0.043478260869565216
+INST_016,institution,Klaus Reither,Switzerland,Industry,1,0.021739130434782608,0.0,0.021739130434782608
+INST_009,institution,Dr. Agarwal's Eye Hospital,India,Industry,1,0.021739130434782608,0.0,0.021739130434782608
