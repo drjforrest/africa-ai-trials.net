@@ -227,8 +227,9 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
           return '#E8E8E8'; // Light gray for trials
         }
         
-        // For institutions and funders, use sector
-        const sector = d.sector || (d.type === 'funder' ? 'Funder' : '');
+        // For institutions, funders, and companies, use sector
+        // Companies default to Industry if no sector specified
+        const sector = d.sector || (d.type === 'funder' ? 'Funder' : (d.type === 'company' ? 'Industry' : ''));
         
         switch (sector) {
           case 'Academia':
@@ -279,24 +280,34 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .attr('stroke-opacity', 0.2) // Low opacity matching static figure
         .attr('stroke-width', 0.5); // Thin edges matching static figure
 
-      // Separate trials (circles) and institutions (squares)
+      // Separate trials (circles) and institutions (squares) - all non-trial types are squares
       const trialNodes = filteredNodes.filter(n => n.type === 'clinical_trial');
       const institutionNodes = filteredNodes.filter(n => 
-        n.type === 'institution' || n.type === 'funder'
+        n.type === 'institution' || n.type === 'funder' || n.type === 'company'
       );
       
+      // Helper function for node size calculation (matching publication: min 200, max 2000, scaled to pixels)
+      // Publication uses same base calculation for all nodes, then trials get 0.6x multiplier
+      const getNodeSize = (nodeId: string, isTrial: boolean = false): number => {
+        const centrality = degreeCentrality.get(nodeId) || 0;
+        const MIN_SIZE = 10;  // Screen-appropriate min size (matches publication ratio)
+        const MAX_SIZE = 25;  // Screen-appropriate max size (matches publication ratio)
+        let size = MIN_SIZE + (MAX_SIZE - MIN_SIZE) * centrality;
+        
+        // Trials slightly smaller (0.6x as per publication figure)
+        if (isTrial) {
+          size *= 0.6;
+        }
+        
+        return size;
+      };
+
       // Draw trial nodes as circles (gray)
       const trialCircles = container.append('g')
         .selectAll('circle')
         .data(trialNodes)
         .join('circle')
-        .attr('r', d => {
-          // Size based on degree centrality: min 200, max 2000 (scaled to pixels)
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 8;
-          const maxSize = 20;
-          return minSize + (maxSize - minSize) * centrality * 0.6; // Slightly smaller than institutions
-        })
+        .attr('r', d => getNodeSize(d.id, true))
         .attr('fill', '#E8E8E8') // Light gray
         .attr('stroke', '#000000')
         .attr('stroke-width', 0.5)
@@ -317,31 +328,14 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .selectAll('rect')
         .data(institutionNodes)
         .join('rect')
-        .attr('width', d => {
-          // Size based on degree centrality: min 200, max 2000 (scaled to pixels)
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 10;
-          const maxSize = 25;
-          return minSize + (maxSize - minSize) * centrality;
-        })
-        .attr('height', d => {
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 10;
-          const maxSize = 25;
-          return minSize + (maxSize - minSize) * centrality;
-        })
+        .attr('width', d => getNodeSize(d.id, false))
+        .attr('height', d => getNodeSize(d.id, false))
         .attr('x', d => {
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 10;
-          const maxSize = 25;
-          const size = minSize + (maxSize - minSize) * centrality;
+          const size = getNodeSize(d.id, false);
           return -size / 2;
         })
         .attr('y', d => {
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 10;
-          const maxSize = 25;
-          const size = minSize + (maxSize - minSize) * centrality;
+          const size = getNodeSize(d.id, false);
           return -size / 2;
         })
         .attr('fill', (d: any) => getNodeColor(d as Node))
@@ -360,6 +354,7 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         });
 
       // Add labels for institutions with degree > 5 (matching static figure)
+      // Labels positioned slightly above nodes (y - offset) as per publication
       const highDegreeInstitutions = institutionNodes.filter(n => 
         (nodeDegrees.get(n.id) || 0) > 5
       );
@@ -368,15 +363,12 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         .selectAll('text')
         .data(highDegreeInstitutions)
         .join('text')
-        .text(d => d.title)
+        .text(d => d.title.substring(0, 30)) // Truncate to 30 chars as per publication
         .attr('font-size', '8px')
         .attr('text-anchor', 'middle')
         .attr('dy', d => {
-          const centrality = degreeCentrality.get(d.id) || 0;
-          const minSize = 10;
-          const maxSize = 25;
-          const size = minSize + (maxSize - minSize) * centrality;
-          return size / 2 + 12; // Position below node
+          const size = getNodeSize(d.id, false);
+          return -size / 2 - 12; // Position above node (negative offset)
         })
         .attr('pointer-events', 'none')
         .attr('fill', '#000')
@@ -396,18 +388,12 @@ const NetworkDiagram: React.FC<NetworkDiagramProps> = ({
         institutionSquares
           .attr('x', (d: any) => {
             const node = d as Node;
-            const centrality = degreeCentrality.get(node.id) || 0;
-            const minSize = 10;
-            const maxSize = 25;
-            const size = minSize + (maxSize - minSize) * centrality;
+            const size = getNodeSize(node.id, false);
             return (node.x || 0) - size / 2;
           })
           .attr('y', (d: any) => {
             const node = d as Node;
-            const centrality = degreeCentrality.get(node.id) || 0;
-            const minSize = 10;
-            const maxSize = 25;
-            const size = minSize + (maxSize - minSize) * centrality;
+            const size = getNodeSize(node.id, false);
             return (node.y || 0) - size / 2;
           });
 

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Network Diagram Visualization**: Updated to match publication figure styling
+  - Fixed label positioning (now above nodes instead of below)
+  - Added label truncation to 30 characters
+  - Refactored node size calculation for consistency
+  - Ensured trials use 0.6x size multiplier as per publication
+  - Included company nodes as squares (Industry sector)
+
+### Fixed
+
+- **Deploy Script**: Fixed variable escaping in SSH heredoc blocks
+  - Escaped `$LOCAL_PORT` variables in remote commands
+  - Fixed variable references in final summary output
+
 ### Added
 
 - Clean repository structure following scientific project conventions

@@ -38,8 +38,8 @@ export NVM_DIR="\$HOME/.nvm"
 nvm use v20.19.0 2>/dev/null || nvm use node || echo "⚠️ nvm not available, using system node"
 export PATH="\$HOME/.nvm/versions/node/v20.19.0/bin:\$PATH"
 
-# Check and kill processes on port $LOCAL_PORT
-echo "🔍 Checking for processes on port $LOCAL_PORT..."
+# Check and kill processes on port \$LOCAL_PORT
+echo "🔍 Checking for processes on port \$LOCAL_PORT..."
 kill_port() {
     local port=\$1
     local pid=\$(lsof -ti:\$port 2>/dev/null)
@@ -160,7 +160,6 @@ cat << EOF_APP_PLIST > ~/Library/LaunchAgents/com.african-ai-trials.app.plist
 </dict>
 </plist>
 EOF_APP_PLIST
-EOF
 
 # Unload existing services
 echo "🔄 Reloading launchd services..."
@@ -188,19 +187,22 @@ curl -f http://localhost:\$LOCAL_PORT && echo "✅ Application OK" || echo "❌ 
 
 # Test internal IP access
 echo "Testing internal IP access:"
-curl -f http://$LOCAL_IP:$LOCAL_PORT && echo "✅ Internal IP access OK" || echo "❌ Internal IP access FAILED"
+curl -f http://$LOCAL_IP:\$LOCAL_PORT && echo "✅ Internal IP access OK" || echo "❌ Internal IP access FAILED"
+EOF
+
+# Print final deployment summary (run locally)
 
 echo ""
 echo "✅ Deployment completed!"
 echo ""
 echo "🌍 Application endpoints:"
 echo "  Public: https://$DOMAIN (via Cloudflare tunnel)"
-echo "  Internal: http://$LOCAL_IP:$LOCAL_PORT"
-echo "  Local: http://localhost:$LOCAL_PORT"
+echo "  Internal: http://$LOCAL_IP:$PORT"
+echo "  Local: http://localhost:$PORT"
 echo ""
 echo "☁️ Cloudflare tunnel configuration:"
 echo "  Domain: $DOMAIN"
-echo "  Target: http://$LOCAL_IP:$LOCAL_PORT"
+echo "  Target: http://$LOCAL_IP:$PORT"
 echo ""
 echo "📊 Monitoring:"
 echo "  launchctl list | grep african-ai-trials"
@@ -213,7 +215,7 @@ echo "  Update data: npm run data:update"
 echo "  Rebuild DB: npm run data:rebuild"
 echo ""
 echo "🔄 Auto-restart configured for:"
-echo "  ✅ Next.js application (launchd on port \$LOCAL_PORT)"
+echo "  ✅ Next.js application (launchd on port $PORT)"
 echo "  ✅ Database monitor (launchd)"
 echo ""
 echo "🔔 Notifications configured:"
