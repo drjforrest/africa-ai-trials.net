@@ -1,0 +1,4 @@
+Metric,Degree_Centrality,Betweenness_Centrality,Closeness_Centrality
+Degree_Centrality,1.000,NA,1.000
+Betweenness_Centrality,NA,NA,NA
+Closeness_Centrality,1.000,NA,1.000

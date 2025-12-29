@@ -1,0 +1,74 @@
+# Python
+venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Data files (large or sensitive)
+*.db
+*.sqlite
+*.sqlite3
+*.xlsx
+*.xls
+!data/raw/*.csv
+!data/processed/*.csv
+
+# Results (generated files - keep structure but ignore large outputs)
+results/figures/*.png
+results/figures/*.pdf
+!results/figures/.gitkeep
+results/tables/*.csv
+!results/tables/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# OS files
+.DS_Store
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Archive (old files)
+archive/
+
+# Node modules (if web interface is included)
+node_modules/
+.next/
+out/
+.vercel
+

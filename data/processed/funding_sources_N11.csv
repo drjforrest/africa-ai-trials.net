@@ -1,0 +1,14 @@
+funding_id,name,headquarters_country,funder_type
+INST_001,Association for Research in Vision & Ophthalmology (ARVO),USA,Private Foundation
+INST_003,Bill & Melinda Gates Foundation,USA,Private Foundation
+INST_005,CDC (U.S. Centers for Disease Control and Prevention),USA,Government Agency
+INST_008,Dalio Philanthropies,USA,Private Foundation
+INST_010,EPFL Tech4Dev,Switzerland,International Organization
+INST_011,Eunice Kennedy Shriver National Institute of Child Health and Human Development (NICHD),USA,Government Agency
+INST_012,Foundation for Innovative New Diagnostics Switzerland,Switzerland,International Organization
+INST_018,Mayo Clinic,USA,Healthcare Institution
+INST_020,National Cancer Institute (NCI),USA,Government Agency
+INST_022,National Institute of Arthritis and Musculoskeletal and Skin Diseases (NIAMS),USA,Government Agency
+INST_024,Orbis International,USA,International Organization
+INST_025,PATH International,USA,International Organization
+

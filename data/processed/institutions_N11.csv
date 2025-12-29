@@ -1,0 +1,37 @@
+institution_id,institution_name,institution_type,country,sector
+INST_001,Association for Research in Vision & Ophthalmology (ARVO),Funder,USA,Funder
+INST_002,Beth Israel Deaconess Medical Center,Academia,USA,Academia
+INST_003,Bill & Melinda Gates Foundation,Funder,USA,Funder
+INST_004,Botswana Harvard AIDS Institute Partner,Academia,Botswana,Academia
+INST_005,CDC (U.S. Centers for Disease Control and Prevention),Funder,USA,Funder
+INST_006,Centre for Infectious Disease Research in Zambia,Academia,Zambia,Academia
+INST_007,"Charite University, Berlin, Germany",Academia,Germany,Academia
+INST_008,Dalio Philanthropies,Funder,USA,Funder
+INST_009,Dr. Agarwal's Eye Hospital,Industry,India,Industry
+INST_010,EPFL Tech4Dev,Funder,Switzerland,Funder
+INST_011,Eunice Kennedy Shriver National Institute of Child Health and Human Development (NICHD),Funder,USA,Funder
+INST_012,"Foundation for Innovative New Diagnostics, Switzerland",Funder,Switzerland,Funder
+INST_013,Human Sciences Research Council,Academia,South Africa,Academia
+INST_014,"Institute of Tropical Medicine, Belgium",Academia,Belgium,Academia
+INST_015,Kilimanjaro Christian Medical Centre,Academia,Tanzania,Academia
+INST_016,Klaus Reither,Industry,Switzerland,Industry
+INST_017,Lancaster University,Academia,UK,Academia
+INST_018,Mayo Clinic,Funder,USA,Funder
+INST_019,"Ministry of Health, Lesotho",Government,Lesotho,Government
+INST_020,National Cancer Institute (NCI),Funder,USA,Funder
+INST_021,National Center for Advancing Translational Sciences (NCATS),Academia,USA,Academia
+INST_022,National Institute of Arthritis and Musculoskeletal and Skin Diseases (NIAMS),Funder,USA,Funder
+INST_023,Neo Sense Vector (NSV),Industry,USA,Industry
+INST_024,Orbis International,Funder,USA,Funder
+INST_025,PATH International,Funder,USA,Funder
+INST_026,Penda Health,Industry,Kenya,Industry
+INST_027,Radboud University Medical Center,Academia,Netherlands,Academia
+INST_028,SolidarMed,Industry,Switzerland,Industry
+INST_029,Tanzanian National Institute of Medical Research,Academia,Tanzania,Academia
+INST_030,The London School of Hygiene & Tropical Medicine,Academia,UK,Academia
+INST_031,"University Hospital, Basel, Switzerland",Academia,Switzerland,Academia
+INST_032,University of Birmingham,Academia,UK,Academia
+INST_033,University of Botswana,Academia,Botswana,Academia
+INST_034,"University of California, San Francisco",Academia,USA,Academia
+INST_036,University of Zimbabwe,Academia,Zimbabwe,Academia
+INST_038,Université de Genève,Academia,Switzerland,Academia

@@ -1,0 +1,14 @@
+funding_relationship_id,funder_id,recipient_type,recipient_id,funding_type,start_date,end_date
+FREL_001,INST_010,clinical_trial,NCT03757299,Research Grant,,
+FREL_002,INST_012,clinical_trial,NCT04666311,Research Grant,,
+FREL_003,INST_005,clinical_trial,NCT05139940,Research Grant,,
+FREL_004,INST_008,clinical_trial,NCT05438576,Research Grant,,
+FREL_005,INST_011,clinical_trial,NCT05438576,Research Grant,,
+FREL_006,INST_018,clinical_trial,NCT05438576,Research Grant,,
+FREL_007,INST_022,clinical_trial,NCT05438576,Research Grant,,
+FREL_008,INST_020,clinical_trial,NCT06042543,Research Grant,,
+FREL_009,INST_001,clinical_trial,PACTR202101512465690,Research Grant,,
+FREL_010,INST_024,clinical_trial,PACTR202101512465690,Research Grant,,
+FREL_011,INST_003,clinical_trial,PACTR202502499779176,Research Grant,,
+FREL_012,INST_025,clinical_trial,PACTR202502499779176,Research Grant,,
+
