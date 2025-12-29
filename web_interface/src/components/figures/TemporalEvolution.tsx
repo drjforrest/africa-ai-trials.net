@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
+import React, { useEffect, useRef } from 'react';
 
 interface TemporalEvolutionProps {
   width?: number;
@@ -20,19 +20,19 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove();
 
-    // Updated data based on actual trials in database (including Ethiopia)
-    const yearlyData = [
-      { year: 2018, Kenya: 0, Nigeria: 0, Tanzania: 0, Zambia: 1, Ethiopia: 0 },
-      { year: 2019, Kenya: 0, Nigeria: 0, Tanzania: 1, Zambia: 0, Ethiopia: 0 },
-      { year: 2020, Kenya: 1, Nigeria: 0, Tanzania: 0, Zambia: 0, Ethiopia: 0 },
-      { year: 2021, Kenya: 0, Nigeria: 1, Tanzania: 0, Zambia: 0, Ethiopia: 0 },
-      { year: 2022, Kenya: 0, Nigeria: 1, Tanzania: 0, Zambia: 0, Ethiopia: 0 },
-      { year: 2024, Kenya: 0, Nigeria: 0, Tanzania: 0, Zambia: 0, Ethiopia: 1 },
-      { year: 2025, Kenya: 2, Nigeria: 0, Tanzania: 0, Zambia: 0, Ethiopia: 0 }
+    // Cumulative data based on actual trials (matches publication Figure 3)
+    const cumulativeData = [
+      { year: 2019, cumulative: 2, newTrials: 2 },
+      { year: 2020, cumulative: 3, newTrials: 1 },
+      { year: 2021, cumulative: 5, newTrials: 2 },
+      { year: 2022, cumulative: 7, newTrials: 2 },
+      { year: 2023, cumulative: 9, newTrials: 2 },
+      { year: 2024, cumulative: 10, newTrials: 1 },
+      { year: 2025, cumulative: 11, newTrials: 1 }
     ];
 
     // Set up dimensions with proper margins
-    const margin = { top: 40, right: 80, bottom: 60, left: 80 };
+    const margin = { top: 50, right: 80, bottom: 60, left: 80 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -41,24 +41,14 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
 
     // Create scales
     const xScale = d3.scaleLinear()
-      .domain(d3.extent(yearlyData, d => d.year) as [number, number])
-      .range([0, innerWidth]);
+      .domain(d3.extent(cumulativeData, d => d.year) as [number, number])
+      .range([0, innerWidth])
+      .nice();
 
     const yScale = d3.scaleLinear()
-      .domain([0, d3.max(yearlyData, d => Math.max(d.Kenya, d.Nigeria, d.Tanzania, d.Zambia, d.Ethiopia)) || 1])
-      .range([innerHeight, 0]);
-
-    // Professional color palette matching manuscript
-    const countryColors = {
-      Kenya: '#1f77b4',    // Blue
-      Nigeria: '#ff7f0e',  // Orange
-      Tanzania: '#2ca02c', // Green
-      Zambia: '#d62728',   // Red
-      Ethiopia: '#9467bd'  // Purple
-    };
-
-    const countries = ['Kenya', 'Nigeria', 'Tanzania', 'Zambia', 'Ethiopia'];
-
+      .domain([0, d3.max(cumulativeData, d => d.cumulative) || 11])
+      .range([innerHeight, 0])
+      .nice();
 
     // Add grid lines
     container.append('g')
@@ -87,10 +77,11 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
     // Add axes
     const xAxis = d3.axisBottom(xScale)
       .tickFormat(d3.format('d'))
-      .ticks(6);
+      .ticks(cumulativeData.length);
 
     const yAxis = d3.axisLeft(yScale)
-      .ticks(5);
+      .ticks(6)
+      .tickFormat(d3.format('d'));
 
     container.append('g')
       .attr('transform', `translate(0, ${innerHeight})`)
@@ -105,69 +96,46 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
       .style('font-size', '11px')
       .style('font-family', 'Arial');
 
-    // Add lines and markers for each country
-    countries.forEach(country => {
-      const color = countryColors[country as keyof typeof countryColors];
-      
-      // Create line
-      const countryLine = d3.line<any>()
-        .x(d => xScale(d.year))
-        .y(d => yScale(d[country]))
-        .curve(d3.curveLinear);
+    // Create line generator - single cumulative line (matches publication)
+    const line = d3.line<{year: number; cumulative: number}>()
+      .x(d => xScale(d.year))
+      .y(d => yScale(d.cumulative))
+      .curve(d3.curveLinear);
 
-      container.append('path')
-        .datum(yearlyData)
-        .attr('d', countryLine)
-        .attr('fill', 'none')
-        .attr('stroke', color)
-        .attr('stroke-width', 3)
-        .attr('opacity', 0.8);
+    // Draw the single cumulative line (blue, matching publication #2E86AB)
+    container.append('path')
+      .datum(cumulativeData)
+      .attr('d', line)
+      .attr('fill', 'none')
+      .attr('stroke', '#2E86AB') // Blue color matching publication
+      .attr('stroke-width', 2.5) // Line width matching publication
+      .attr('opacity', 1);
 
-      // Add markers
-      container.selectAll(`.marker-${country}`)
-        .data(yearlyData)
-        .join('circle')
-        .attr('class', `marker-${country}`)
-        .attr('cx', d => xScale(d.year))
-        .attr('cy', d => yScale(d[country as keyof typeof d]))
-        .attr('r', 5)
-        .attr('fill', color)
-        .attr('stroke', 'white')
-        .attr('stroke-width', 2);
-    });
+    // Add markers (circles) at each data point
+    container.selectAll('.marker')
+      .data(cumulativeData)
+      .join('circle')
+      .attr('class', 'marker')
+      .attr('cx', d => xScale(d.year))
+      .attr('cy', d => yScale(d.cumulative))
+      .attr('r', 6)
+      .attr('fill', '#2E86AB')
+      .attr('stroke', 'white')
+      .attr('stroke-width', 2);
 
-    // Add legend
-    const legend = svg.append('g')
-      .attr('transform', `translate(${width - margin.right + 10}, ${margin.top + 20})`);
-
-    countries.forEach((country, i) => {
-      const legendItem = legend.append('g')
-        .attr('transform', `translate(0, ${i * 20})`);
-
-      legendItem.append('line')
-        .attr('x1', 0)
-        .attr('x2', 15)
-        .attr('y1', 0)
-        .attr('y2', 0)
-        .attr('stroke', countryColors[country as keyof typeof countryColors])
-        .attr('stroke-width', 3);
-
-      legendItem.append('circle')
-        .attr('cx', 7.5)
-        .attr('cy', 0)
-        .attr('r', 3)
-        .attr('fill', countryColors[country as keyof typeof countryColors])
-        .attr('stroke', 'white')
-        .attr('stroke-width', 1);
-
-      legendItem.append('text')
-        .attr('x', 20)
-        .attr('y', 4)
-        .text(country)
-        .style('font-size', '11px')
-        .style('font-family', 'Arial')
-        .attr('fill', '#374151');
-    });
+    // Add data labels above each point (showing cumulative count)
+    container.selectAll('.label')
+      .data(cumulativeData)
+      .join('text')
+      .attr('class', 'label')
+      .attr('x', d => xScale(d.year))
+      .attr('y', d => yScale(d.cumulative) - 15)
+      .attr('text-anchor', 'middle')
+      .text(d => d.cumulative.toString())
+      .style('font-size', '11px')
+      .style('font-family', 'Arial')
+      .style('font-weight', 'bold')
+      .attr('fill', '#374151');
 
     // Add axis labels
     svg.append('text')
@@ -186,7 +154,7 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
       .style('font-family', 'Arial')
       .style('font-weight', 'bold')
       .attr('fill', '#374151')
-      .text('Number of New Trials');
+      .text('Cumulative Number of Registered Trials');
 
   }, [width, height]);
 
@@ -199,7 +167,7 @@ const TemporalEvolution: React.FC<TemporalEvolutionProps> = ({
         style={{ border: '1px solid #e5e7eb', borderRadius: '8px' }}
       />
       <div className="mt-2 text-xs text-gray-500 text-center">
-        Cumulative growth of network entities and connections over time
+        Cumulative growth of registered trials over time (matches publication Figure 3)
       </div>
     </div>
   );
