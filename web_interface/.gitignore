@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# notification config (contains potentially sensitive info)
+config/notification-config.json
+
 # vercel
 .vercel
 
