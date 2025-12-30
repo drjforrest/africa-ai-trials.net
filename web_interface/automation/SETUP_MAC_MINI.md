@@ -4,7 +4,7 @@
 
 1. **Copy the LaunchAgent plist file:**
    ```bash
-   cp /Users/jforrest/dev/projects/data-science/ai-trials-africa/web_interface/automation/com.ai-trials-africa.automation.plist ~/Library/LaunchAgents/
+   cp /Users/jforrest/production/african-ai-trials/automation/com.ai-trials-africa.automation.plist ~/Library/LaunchAgents/
    ```
    
    **Important:** Before loading, check that the node path in the plist is correct:
@@ -47,7 +47,7 @@
 
 **Test the automation manually:**
 ```bash
-cd /Users/jforrest/dev/projects/data-science/ai-trials-africa/web_interface
+cd /Users/jforrest/production/african-ai-trials
 npm run automation:run
 ```
 

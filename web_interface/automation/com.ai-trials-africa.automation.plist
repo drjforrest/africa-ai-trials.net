@@ -7,12 +7,12 @@
     
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/jforrest/.nvm/versions/node/v22.21.1/bin/node</string>
+        <string>/Users/jforrest/.nvm/versions/node/v20.19.0/bin/node</string>
         <string>scripts/master-automation-n11.js</string>
     </array>
     
     <key>WorkingDirectory</key>
-    <string>/Users/jforrest/dev/projects/data-science/ai-trials-africa/web_interface</string>
+    <string>/Users/jforrest/production/african-ai-trials</string>
     
     <key>StartInterval</key>
     <integer>86400</integer>
