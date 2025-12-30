@@ -1,0 +1,16 @@
+[Unit]
+Description=AI Trials Africa Registry Automation
+After=network.target
+
+[Service]
+Type=oneshot
+User=your-user
+WorkingDirectory=/path/to/ai-trials-africa/web_interface
+ExecStart=/usr/bin/node scripts/master-automation-n11.js
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ai-trials-automation
+
+[Install]
+WantedBy=multi-user.target
+

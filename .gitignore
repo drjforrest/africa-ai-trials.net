@@ -36,6 +36,7 @@ htmlcov/
 *.xls
 !data/raw/*.csv
 !data/processed/*.csv
+excel/
 
 # Results (generated files - keep structure but ignore large outputs)
 results/figures/*.png

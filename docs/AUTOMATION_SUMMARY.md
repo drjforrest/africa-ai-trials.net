@@ -25,7 +25,11 @@ The automated registry scanning system is **fully implemented** and follows the 
 ### 4. ✅ Automated Updates
 - Database updates when trials verified
 - Frontend JSON regeneration
-- Notification system
+- **Notification system** - Sends notifications when:
+  - New trials discovered in registries (before verification)
+  - Trials added to database (after verification)
+  - Trials completed
+  - New institutions/companies join network
 
 ### 5. ✅ Scheduled Automation
 - Can run on schedule (macOS LaunchAgent, Linux systemd)
@@ -126,8 +130,13 @@ npm run monitor
 ## Files Created
 
 - `scripts/registry-monitor-n11.js` - Main registry scanner
-- `scripts/master-automation-n11.js` - Orchestration script
+- `scripts/master-automation-n11.js` - Orchestration script (with notifications)
+- `scripts/notification-helper.js` - Notification system
 - `scripts/verify-trials.js` - Manual verification tool
+- `scripts/monitor-database.js` - Database change monitor
+- `automation/com.ai-trials-africa.automation.plist` - macOS LaunchAgent
+- `automation/ai-trials-automation.service` - Linux systemd service
+- `SETUP_AUTOMATION.md` - Setup instructions
 - `AUTOMATION_GUIDE.md` - Complete documentation
 - `AUTOMATION_SUMMARY.md` - This file
 

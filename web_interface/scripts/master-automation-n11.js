@@ -13,6 +13,7 @@
 
 const RegistryMonitorN11 = require('./registry-monitor-n11');
 const DatabaseMonitor = require('./monitor-database');
+const NotificationHelper = require('./notification-helper');
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
@@ -58,6 +59,39 @@ class MasterAutomationN11 {
         console.log(`\n[${new Date().toISOString()}] Step 2: New trials require manual verification`);
         console.log(`[${new Date().toISOString()}]   Review pending trials in: ${PENDING_VERIFICATION_FILE}`);
         console.log(`[${new Date().toISOString()}]   Run: node scripts/verify-trials.js to review`);
+        
+        // Send notifications for newly discovered trials
+        const notifications = [];
+        if (registryResults.trials.length === 1) {
+          notifications.push(
+            NotificationHelper.createNewTrialDiscoveredNotification(registryResults.trials[0])
+          );
+        } else {
+          // Group by registry source
+          const byRegistry = {};
+          registryResults.trials.forEach(trial => {
+            const source = trial.registry_source || 'Unknown Registry';
+            if (!byRegistry[source]) {
+              byRegistry[source] = [];
+            }
+            byRegistry[source].push(trial);
+          });
+          
+          // Create notifications for each registry
+          Object.entries(byRegistry).forEach(([source, trials]) => {
+            if (trials.length === 1) {
+              notifications.push(
+                NotificationHelper.createNewTrialDiscoveredNotification(trials[0])
+              );
+            } else {
+              notifications.push(
+                NotificationHelper.createMultipleTrialsDiscoveredNotification(trials.length, source)
+              );
+            }
+          });
+        }
+        
+        await NotificationHelper.sendBatch(notifications);
       } else {
         console.log(`\n[${new Date().toISOString()}] ℹ️ No new trials found in registries`);
       }

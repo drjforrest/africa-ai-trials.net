@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.ai-trials-africa.automation</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/jforrest/.nvm/versions/node/v22.21.1/bin/node</string>
+        <string>scripts/master-automation-n11.js</string>
+    </array>
+    
+    <key>WorkingDirectory</key>
+    <string>/Users/jforrest/dev/projects/data-science/ai-trials-africa/web_interface</string>
+    
+    <key>StartInterval</key>
+    <integer>86400</integer>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>StandardOutPath</key>
+    <string>/tmp/ai-trials-automation.out</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/tmp/ai-trials-automation.err</string>
+    
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+</dict>
+</plist>
+
