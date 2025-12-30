@@ -1,0 +1,19 @@
+{
+  "email": {
+    "enabled": false,
+    "to": "your-email@example.com",
+    "from": "automation@african-ai-trials.net",
+    "smtp": {
+      "host": "smtp.gmail.com",
+      "port": 587,
+      "secure": false
+    }
+  },
+  "remoteDesktop": {
+    "enabled": true,
+    "host": "192.168.1.XXX",
+    "user": "drjforrest",
+    "sshKey": null
+  }
+}
+

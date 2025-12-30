@@ -6,11 +6,50 @@
 
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
+const { promisify } = require('util');
 
+const execAsync = promisify(exec);
 const NOTIFICATION_FILE = path.join(__dirname, '../data/notifications.json');
+const CONFIG_FILE = path.join(__dirname, '../config/notification-config.json');
 
 class NotificationHelper {
+  /**
+   * Load notification configuration
+   */
+  static loadConfig() {
+    const defaultConfig = {
+      email: {
+        enabled: false,
+        to: null,
+        from: null,
+        smtp: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false
+        }
+      },
+      remoteDesktop: {
+        enabled: false,
+        host: null,
+        user: null,
+        sshKey: null
+      }
+    };
+
+    if (fs.existsSync(CONFIG_FILE)) {
+      try {
+        const userConfig = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
+        return { ...defaultConfig, ...userConfig };
+      } catch (e) {
+        console.warn('Error reading notification config, using defaults:', e.message);
+        return defaultConfig;
+      }
+    }
+
+    return defaultConfig;
+  }
+
   /**
    * Send a notification
    * @param {Object} notification - { type, title, message, data }
@@ -19,8 +58,11 @@ class NotificationHelper {
     // Save to file
     this.saveToFile(notification);
     
-    // Send desktop notification
+    // Send desktop notification (local)
     await this.sendDesktopNotification(notification);
+    
+    // Send remote notifications
+    await this.sendRemoteNotifications(notification);
     
     // Log to console
     console.log(`[${new Date().toISOString()}] 📢 ${notification.title}`);
@@ -40,9 +82,11 @@ class NotificationHelper {
     // Send desktop notification (single notification for batch)
     if (notifications.length === 1) {
       await this.sendDesktopNotification(notifications[0]);
+      await this.sendRemoteNotifications(notifications[0]);
     } else {
       const summary = this.createBatchSummary(notifications);
       await this.sendDesktopNotification(summary);
+      await this.sendRemoteNotifications(summary);
     }
     
     // Log all to console
@@ -104,6 +148,76 @@ class NotificationHelper {
       ]);
     }
     // Windows not supported yet
+  }
+
+  /**
+   * Send remote notifications (email, remote desktop, etc.)
+   */
+  static async sendRemoteNotifications(notification) {
+    const config = this.loadConfig();
+
+    // Send email notification
+    if (config.email?.enabled && config.email?.to) {
+      await this.sendEmailNotification(notification, config.email);
+    }
+
+    // Send remote desktop notification via SSH
+    if (config.remoteDesktop?.enabled && config.remoteDesktop?.host) {
+      await this.sendRemoteDesktopNotification(notification, config.remoteDesktop);
+    }
+  }
+
+  /**
+   * Send email notification using macOS mail command
+   */
+  static async sendEmailNotification(notification, emailConfig) {
+    try {
+      const subject = notification.title;
+      const body = `${notification.message}\n\nType: ${notification.type}\nTimestamp: ${notification.timestamp}\n\nView details in: data/notifications.json`;
+
+      // Use macOS mail command (requires mail server configured)
+      const mailCommand = `echo "${body}" | mail -s "${subject}" ${emailConfig.to}`;
+      
+      exec(mailCommand, (error) => {
+        if (error) {
+          // Fallback: try using sendmail or log error
+          console.warn(`[${new Date().toISOString()}] Email notification failed:`, error.message);
+          console.warn(`[${new Date().toISOString()}] Notification saved to file instead`);
+        } else {
+          console.log(`[${new Date().toISOString()}] 📧 Email notification sent to ${emailConfig.to}`);
+        }
+      });
+    } catch (error) {
+      console.warn(`[${new Date().toISOString()}] Email notification error:`, error.message);
+    }
+  }
+
+  /**
+   * Send desktop notification to remote Mac via SSH
+   */
+  static async sendRemoteDesktopNotification(notification, remoteConfig) {
+    try {
+      const user = remoteConfig.user || process.env.USER;
+      const host = remoteConfig.host;
+      const sshKey = remoteConfig.sshKey ? `-i ${remoteConfig.sshKey}` : '';
+      
+      // Escape the notification text for shell
+      const escapedTitle = notification.title.replace(/"/g, '\\"');
+      const escapedMessage = notification.message.replace(/"/g, '\\"');
+      
+      const sshCommand = `ssh ${sshKey} ${user}@${host} osascript -e 'display notification "${escapedMessage}" with title "${escapedTitle}" sound name "Glass"'`;
+      
+      exec(sshCommand, { timeout: 5000 }, (error) => {
+        if (error) {
+          console.warn(`[${new Date().toISOString()}] Remote desktop notification failed:`, error.message);
+          console.warn(`[${new Date().toISOString()}] Make sure SSH keys are set up and host is reachable`);
+        } else {
+          console.log(`[${new Date().toISOString()}] 🖥️  Remote notification sent to ${user}@${host}`);
+        }
+      });
+    } catch (error) {
+      console.warn(`[${new Date().toISOString()}] Remote notification error:`, error.message);
+    }
   }
 
   /**
